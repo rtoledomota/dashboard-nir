@@ -36,7 +36,7 @@ REFRESH_SECONDS = 60
 st_autorefresh(interval=REFRESH_SECONDS * 1000, key="nir_autorefresh")
 
 # ======================
-# CSS (mobile-first + grids responsivos + tabelas compactas)
+# CSS (mobile-first + tabelas compactas)
 # ======================
 st.markdown(
     f"""
@@ -54,7 +54,6 @@ st.markdown(
         align-items: stretch;
         width: 100%;
       }}
-
       .nir-header-box {{ border-radius: 16px; }}
 
       .nir-header-logo {{
@@ -66,7 +65,6 @@ st.markdown(
         height: var(--nir-header-h);
         padding: 8px;
       }}
-
       .nir-header-logo img {{
         height: var(--nir-logo-h);
         width: auto;
@@ -93,21 +91,19 @@ st.markdown(
         line-height: 1.05;
         margin: 0;
       }}
-
       .nir-top-sub {{
         margin-top: 6px;
         opacity: 0.92;
         margin-bottom: 0;
       }}
 
-      /* ===== Grids responsivos ===== */
+      /* ===== Grids ===== */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-top: 10px;
       }}
-
       .nir-tables-grid {{
         display: grid;
         grid-template-columns: 1fr;
@@ -145,29 +141,27 @@ st.markdown(
         font-size: 14px;
       }}
 
-      /* ===== Dataframe compacto (colunas menores) ===== */
-      div[data-testid="stDataFrame"] {{
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid {BORDER};
+      /* ===== Tabela (st.table) mais compacta ===== */
+      table {{
+        width: 100% !important;
+        border-collapse: collapse !important;
       }}
-
-      /* Reduz padding e fonte dentro do grid do DataFrame */
-      div[data-testid="stDataFrame"] * {{
+      thead th {{
         font-size: 12px !important;
+        color: {TEXT} !important;
+        background: #F8FAFC !important;
+        border-bottom: 1px solid {BORDER} !important;
+        padding: 6px 8px !important;
+        text-align: left !important;
       }}
-      /* Tenta reduzir a “altura” visual das células */
-      div[data-testid="stDataFrame"] [role="gridcell"] {{
-        padding-top: 4px !important;
-        padding-bottom: 4px !important;
-      }}
-      div[data-testid="stDataFrame"] [role="columnheader"] {{
-        padding-top: 6px !important;
-        padding-bottom: 6px !important;
-        font-weight: 800 !important;
+      tbody td {{
+        font-size: 12px !important;
+        border-bottom: 1px solid {BORDER} !important;
+        padding: 6px 8px !important;
+        vertical-align: top !important;
       }}
 
-      /* ===== Celular ===== */
+      /* Celular */
       @media (max-width: 768px) {{
         :root {{
           --nir-header-h: 72px;
@@ -186,7 +180,7 @@ st.markdown(
         }}
       }}
 
-      /* ===== Desktop/TV ===== */
+      /* Desktop/TV */
       @media (min-width: 1200px) {{
         :root {{
           --nir-header-h: 110px;
@@ -203,7 +197,6 @@ st.markdown(
         .nir-metrics-grid {{
           grid-template-columns: 1fr 1fr 1fr 1fr;
         }}
-
         .nir-tables-grid {{
           grid-template-columns: 1fr 1fr;
         }}
@@ -213,10 +206,8 @@ st.markdown(
         }}
         .nir-card-title {{ font-size: 13px; }}
         .nir-card-value {{ font-size: 32px; }}
-        .nir-section-title {{ font-size: 16px; }}
 
-        /* Dataframe um pouco maior no desktop, mas ainda compacto */
-        div[data-testid="stDataFrame"] * {{
+        thead th, tbody td {{
           font-size: 13px !important;
         }}
       }}
@@ -283,7 +274,6 @@ def safe_df_for_display(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def render_section_header(title: str):
-    # Sem “pill” de quantidade de linhas
     st.markdown(
         f"""
         <div class="nir-section-title">
@@ -294,12 +284,12 @@ def render_section_header(title: str):
     )
 
 
-def render_df(df: pd.DataFrame, height: int = 360):
+def render_table(df: pd.DataFrame):
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
-    st.dataframe(df, use_container_width=True, hide_index=True, height=height)
+    st.table(df)
 
 
 def find_col_by_contains(df: pd.DataFrame, contains_norm: str) -> str | None:
@@ -465,7 +455,7 @@ df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
 df_transf = montar_transferencias(rows, i_transf_title)
 
 # ======================
-# MÉTRICAS (sempre 4 cards)
+# MÉTRICAS
 # ======================
 col_realizadas = find_col_by_contains(df_altas, "ALTAS DO DIA") if not df_altas.empty else None
 col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS") if not df_altas.empty else None
@@ -503,23 +493,18 @@ st.markdown(metrics_html, unsafe_allow_html=True)
 st.markdown("")
 
 # ======================
-# TABELAS (sem contagem de linhas)
+# TABELAS (SEM scroll interno - usa st.table)
 # ======================
-# Alturas mais compactas (ajuste se quiser)
-ALTAS_HEIGHT = 360
-VAGAS_HEIGHT = 240
-TRANSF_HEIGHT = 260
-
 st.markdown("<div class='nir-tables-grid'>", unsafe_allow_html=True)
 
 st.markdown("<div class='nir-card'>", unsafe_allow_html=True)
 render_section_header("ALTAS")
-render_df(df_altas, height=ALTAS_HEIGHT)
+render_table(df_altas)
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<div class='nir-card'>", unsafe_allow_html=True)
 render_section_header("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
-render_df(df_vagas, height=VAGAS_HEIGHT)
+render_table(df_vagas)
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
@@ -528,7 +513,7 @@ st.markdown("")
 
 st.markdown("<div class='nir-card'>", unsafe_allow_html=True)
 render_section_header("TRANSFERÊNCIAS/SAÍDAS")
-render_df(df_transf, height=TRANSF_HEIGHT)
+render_table(df_transf)
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.caption("Fonte: Google Sheets (Folha1).")
