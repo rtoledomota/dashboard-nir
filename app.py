@@ -196,11 +196,11 @@ st.markdown(
         .nir-top-sub {{ font-size: 15px; }}
 
         .nir-metrics-grid {{
-          grid-template-columns: 1fr 1fr 1fr 1fr;
+          grid-template-columns: 1fr 1fr 1fr 1fr; /* web: 4 em linha */
         }}
 
         .nir-tables-grid {{
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr 1fr; /* web: 2 colunas */
         }}
 
         .nir-card {{
@@ -271,15 +271,6 @@ def safe_df_for_display(df: pd.DataFrame) -> pd.DataFrame:
             new_cols.append(key)
     df.columns = new_cols
     return df
-
-
-def render_metric_card_html(title: str, value: int, color: str) -> str:
-    return f"""
-      <div class="nir-card">
-        <div class="nir-card-title">{title}</div>
-        <div class="nir-card-value" style="color:{color}">{value}</div>
-      </div>
-    """
 
 
 def render_section_header(title: str, pill: str):
@@ -362,6 +353,7 @@ def montar_altas(rows: list[list[str]], i_altas_header: int, i_vagas_title: int)
 
 
 def montar_vagas(rows: list[list[str]], i_vagas_title: int, i_transf_title: int) -> pd.DataFrame:
+    # Correção para pegar ENFERMARIA + UTI quando o HOSPITAL vem vazio na 2ª linha
     bloco = slice_rows(rows, i_vagas_title + 1, i_transf_title)
     if not bloco:
         return pd.DataFrame()
@@ -466,7 +458,7 @@ df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
 df_transf = montar_transferencias(rows, i_transf_title)
 
 # ======================
-# MÉTRICAS (grid responsivo)
+# MÉTRICAS (sempre 4 cards - corrige falta na web)
 # ======================
 col_realizadas = find_col_by_contains(df_altas, "ALTAS DO DIA") if not df_altas.empty else None
 col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS") if not df_altas.empty else None
@@ -476,14 +468,29 @@ total_previstas = int(df_altas[col_previstas].sum()) if col_previstas else 0
 total_vagas = int(df_vagas["VAGAS_RESERVADAS"].sum()) if not df_vagas.empty else 0
 total_transf = int(df_transf["TOTAL"].sum()) if not df_transf.empty else 0
 
-metrics_html = (
-    "<div class='nir-metrics-grid'>"
-    + render_metric_card_html("Altas realizadas (até 19h)", total_realizadas, PRIMARY)
-    + render_metric_card_html("Altas previstas (24h)", total_previstas, ACCENT_GREEN)
-    + render_metric_card_html("Vagas reservadas (dia seguinte)", total_vagas, SCS_PURPLE)
-    + render_metric_card_html("Transferências/Saídas (total)", total_transf, SCS_CYAN)
-    + "</div>"
-)
+metrics_html = f"""
+<div class="nir-metrics-grid">
+  <div class="nir-card">
+    <div class="nir-card-title">Altas realizadas (até 19h)</div>
+    <div class="nir-card-value" style="color:{PRIMARY}">{total_realizadas}</div>
+  </div>
+
+  <div class="nir-card">
+    <div class="nir-card-title">Altas previstas (24h)</div>
+    <div class="nir-card-value" style="color:{ACCENT_GREEN}">{total_previstas}</div>
+  </div>
+
+  <div class="nir-card">
+    <div class="nir-card-title">Vagas reservadas (dia seguinte)</div>
+    <div class="nir-card-value" style="color:{SCS_PURPLE}">{total_vagas}</div>
+  </div>
+
+  <div class="nir-card">
+    <div class="nir-card-title">Transferências/Saídas (total)</div>
+    <div class="nir-card-value" style="color:{SCS_CYAN}">{total_transf}</div>
+  </div>
+</div>
+"""
 st.markdown(metrics_html, unsafe_allow_html=True)
 
 st.markdown("")
