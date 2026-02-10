@@ -36,7 +36,7 @@ REFRESH_SECONDS = 60
 st_autorefresh(interval=REFRESH_SECONDS * 1000, key="nir_autorefresh")
 
 # ======================
-# CSS (mobile-first + tabelas compactas)
+# CSS (mobile-friendly)
 # ======================
 st.markdown(
     f"""
@@ -46,14 +46,21 @@ st.markdown(
         color: {TEXT};
       }}
 
-      /* ===== Header Grid ===== */
+      /* Header */
       .nir-header {{
         display: grid;
-        grid-template-columns: 1fr 4fr 1fr;
-        gap: 10px;
+        grid-template-columns: 72px 1fr 72px;
+        gap: 8px;
         align-items: stretch;
         width: 100%;
       }}
+      @media (min-width: 1200px) {{
+        .nir-header {{
+          grid-template-columns: 1fr 4fr 1fr;
+          gap: 10px;
+        }}
+      }}
+
       .nir-header-box {{ border-radius: 16px; }}
 
       .nir-header-logo {{
@@ -97,20 +104,19 @@ st.markdown(
         margin-bottom: 0;
       }}
 
-      /* ===== Grids ===== */
+      /* Grids */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-top: 10px;
       }}
-      .nir-tables-grid {{
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
+      @media (min-width: 1200px) {{
+        .nir-metrics-grid {{
+          grid-template-columns: 1fr 1fr 1fr 1fr;
+        }}
       }}
 
-      /* Cards */
       .nir-card {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
@@ -131,85 +137,74 @@ st.markdown(
         font-size: 22px;
       }}
 
-      .nir-section-title {{
-        font-weight: 950;
-        margin-bottom: 8px;
-        color: {TEXT};
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 14px;
-      }}
-
-      /* ===== Tabela (st.table) mais compacta ===== */
-      table {{
-        width: 100% !important;
-        border-collapse: collapse !important;
-      }}
-      thead th {{
-        font-size: 12px !important;
-        color: {TEXT} !important;
-        background: #F8FAFC !important;
-        border-bottom: 1px solid {BORDER} !important;
-        padding: 6px 8px !important;
-        text-align: left !important;
-      }}
-      tbody td {{
-        font-size: 12px !important;
-        border-bottom: 1px solid {BORDER} !important;
-        padding: 6px 8px !important;
-        vertical-align: top !important;
-      }}
-
-      /* Celular */
-      @media (max-width: 768px) {{
-        :root {{
-          --nir-header-h: 72px;
-          --nir-logo-h: 44px;
-        }}
-        .block-container {{
-          padding-top: 0.7rem;
-          padding-left: 0.85rem;
-          padding-right: 0.85rem;
-        }}
-        .nir-top-title {{ font-size: 19px; }}
-        .nir-top-sub {{ font-size: 12px; }}
-        .nir-header {{
-          grid-template-columns: 72px 1fr 72px;
-          gap: 8px;
-        }}
-      }}
-
-      /* Desktop/TV */
       @media (min-width: 1200px) {{
-        :root {{
-          --nir-header-h: 110px;
-          --nir-logo-h: 72px;
-        }}
-        .block-container {{
-          padding-top: 1.4rem;
-          padding-left: 1.6rem;
-          padding-right: 1.6rem;
-        }}
-        .nir-top-title {{ font-size: 40px; }}
-        .nir-top-sub {{ font-size: 15px; }}
-
-        .nir-metrics-grid {{
-          grid-template-columns: 1fr 1fr 1fr 1fr;
-        }}
-        .nir-tables-grid {{
-          grid-template-columns: 1fr 1fr;
-        }}
-
         .nir-card {{
           padding: 14px 16px;
         }}
         .nir-card-title {{ font-size: 13px; }}
         .nir-card-value {{ font-size: 32px; }}
+      }}
 
-        thead th, tbody td {{
-          font-size: 13px !important;
+      .nir-section-title {{
+        font-weight: 950;
+        margin-bottom: 8px;
+        color: {TEXT};
+        font-size: 15px;
+      }}
+
+      /* Lista mobile (em vez de tabela) */
+      .nir-list {{
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }}
+      .nir-item {{
+        border: 1px solid {BORDER};
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: #FFFFFF;
+      }}
+      .nir-item-title {{
+        font-weight: 900;
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: {TEXT};
+      }}
+      .nir-item-row {{
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+        color: {TEXT};
+      }}
+      .nir-item-row span {{
+        color: {MUTED};
+        font-weight: 800;
+        margin-right: 6px;
+      }}
+
+      /* Variáveis de altura do header */
+      :root {{
+        --nir-header-h: 72px;
+        --nir-logo-h: 44px;
+      }}
+      @media (min-width: 1200px) {{
+        :root {{
+          --nir-header-h: 110px;
+          --nir-logo-h: 72px;
         }}
+        .nir-top-title {{ font-size: 40px; }}
+        .nir-top-sub {{ font-size: 15px; }}
+      }}
+
+      @media (max-width: 768px) {{
+        .block-container {{
+          padding-top: 0.7rem;
+          padding-left: 0.85rem;
+          padding-right: 0.85rem;
+        }}
+        .nir-top-title {{ font-size: 18px; }}
+        .nir-top-sub {{ font-size: 12px; }}
       }}
     </style>
     """,
@@ -273,25 +268,6 @@ def safe_df_for_display(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def render_section_header(title: str):
-    st.markdown(
-        f"""
-        <div class="nir-section-title">
-          <div>{title}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_table(df: pd.DataFrame):
-    df = safe_df_for_display(df)
-    if df.empty:
-        st.info("Sem dados para exibir.")
-        return
-    st.table(df)
-
-
 def find_col_by_contains(df: pd.DataFrame, contains_norm: str) -> str | None:
     target = _norm(contains_norm)
     for c in df.columns:
@@ -306,6 +282,70 @@ def img_to_data_uri(path: Path) -> str:
     raw = path.read_bytes()
     b64 = base64.b64encode(raw).decode("ascii")
     return f"data:image/png;base64,{b64}"
+
+
+def section_title(title: str):
+    st.markdown(f"<div class='nir-section-title'>{title}</div>", unsafe_allow_html=True)
+
+
+def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas: int, total_transf: int):
+    metrics_html = f"""
+    <div class="nir-metrics-grid">
+      <div class="nir-card">
+        <div class="nir-card-title">Altas realizadas (até 19h)</div>
+        <div class="nir-card-value" style="color:{PRIMARY}">{total_realizadas}</div>
+      </div>
+
+      <div class="nir-card">
+        <div class="nir-card-title">Altas previstas (24h)</div>
+        <div class="nir-card-value" style="color:{ACCENT_GREEN}">{total_previstas}</div>
+      </div>
+
+      <div class="nir-card">
+        <div class="nir-card-title">Vagas reservadas (dia seguinte)</div>
+        <div class="nir-card-value" style="color:{SCS_PURPLE}">{total_vagas}</div>
+      </div>
+
+      <div class="nir-card">
+        <div class="nir-card-title">Transferências/Saídas (total)</div>
+        <div class="nir-card-value" style="color:{SCS_CYAN}">{total_transf}</div>
+      </div>
+    </div>
+    """
+    st.markdown(metrics_html, unsafe_allow_html=True)
+
+
+def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tuple[str, str]], max_items: int | None = None):
+    df = safe_df_for_display(df)
+    if df.empty:
+        st.info("Sem dados para exibir.")
+        return
+
+    if max_items is not None:
+        df = df.head(max_items)
+
+    items_html = "<div class='nir-list'>"
+    for _, row in df.iterrows():
+        # título: concatena colunas principais que existirem
+        parts = []
+        for c in title_cols:
+            if c in df.columns:
+                v = str(row.get(c, "")).strip()
+                if v:
+                    parts.append(v)
+        item_title = " • ".join(parts) if parts else "Item"
+
+        # linhas chave-valor (só se coluna existir)
+        rows_html = ""
+        for label, colname in kv_cols:
+            if colname in df.columns:
+                v = str(row.get(colname, "")).strip()
+                rows_html += f"<div class='nir-item-row'><div><span>{label}:</span>{v}</div></div>"
+
+        items_html += f"<div class='nir-item'><div class='nir-item-title'>{item_title}</div>{rows_html}</div>"
+
+    items_html += "</div>"
+    st.markdown(items_html, unsafe_allow_html=True)
 
 
 # ======================
@@ -391,7 +431,7 @@ def montar_transferencias(rows: list[list[str]], i_transf_title: int) -> pd.Data
 
 
 # ======================
-# HEADER (HTML grid)
+# HEADER
 # ======================
 left_uri = img_to_data_uri(LOGO_LEFT_PATH)
 right_uri = img_to_data_uri(LOGO_RIGHT_PATH)
@@ -415,13 +455,17 @@ st.markdown(
 
 st.markdown("")
 
-# Controles
-b1, b2, b3 = st.columns([1.3, 3.7, 2.0])
-with b1:
+# ======================
+# CONTROLES + MODO CELULAR
+# ======================
+c1, c2, c3 = st.columns([1.4, 2.6, 2.0])
+with c1:
     if st.button("Atualizar agora"):
         st.cache_data.clear()
-with b3:
-    st.caption(f"Última renderização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+with c2:
+    modo_mobile = st.toggle("Modo celular (lista)", value=True)
+with c3:
+    st.caption(f"Atualizado: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
 
 st.markdown("")
 
@@ -465,55 +509,52 @@ total_previstas = int(df_altas[col_previstas].sum()) if col_previstas else 0
 total_vagas = int(df_vagas["VAGAS_RESERVADAS"].sum()) if not df_vagas.empty else 0
 total_transf = int(df_transf["TOTAL"].sum()) if not df_transf.empty else 0
 
-metrics_html = f"""
-<div class="nir-metrics-grid">
-  <div class="nir-card">
-    <div class="nir-card-title">Altas realizadas (até 19h)</div>
-    <div class="nir-card-value" style="color:{PRIMARY}">{total_realizadas}</div>
-  </div>
-
-  <div class="nir-card">
-    <div class="nir-card-title">Altas previstas (24h)</div>
-    <div class="nir-card-value" style="color:{ACCENT_GREEN}">{total_previstas}</div>
-  </div>
-
-  <div class="nir-card">
-    <div class="nir-card-title">Vagas reservadas (dia seguinte)</div>
-    <div class="nir-card-value" style="color:{SCS_PURPLE}">{total_vagas}</div>
-  </div>
-
-  <div class="nir-card">
-    <div class="nir-card-title">Transferências/Saídas (total)</div>
-    <div class="nir-card-value" style="color:{SCS_CYAN}">{total_transf}</div>
-  </div>
-</div>
-"""
-st.markdown(metrics_html, unsafe_allow_html=True)
+render_metric_cards(total_realizadas, total_previstas, total_vagas, total_transf)
 
 st.markdown("")
 
 # ======================
-# TABELAS (SEM scroll interno - usa st.table)
+# CONTEÚDO (Mobile: lista | Web: tabela)
 # ======================
-st.markdown("<div class='nir-tables-grid'>", unsafe_allow_html=True)
+if modo_mobile:
+    section_title("ALTAS")
+    # Título do item: Hospital + Setor (se existirem)
+    # Campos: Altas do dia / previstas (se existirem)
+    col_dia = find_col_by_contains(df_altas, "ALTAS DO DIA") or "ALTAS DO DIA"
+    col_prev = find_col_by_contains(df_altas, "ALTAS PREVISTAS") or "ALTAS PREVISTAS"
+    render_mobile_list(
+        df_altas,
+        title_cols=["HOSPITAL", "SETOR"],
+        kv_cols=[("Altas do dia", col_dia), ("Previstas", col_prev)],
+        max_items=None,
+    )
 
-st.markdown("<div class='nir-card'>", unsafe_allow_html=True)
-render_section_header("ALTAS")
-render_table(df_altas)
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("")
+    section_title("VAGAS RESERVADAS (DIA SEGUINTE)")
+    render_mobile_list(
+        df_vagas,
+        title_cols=["HOSPITAL", "SETOR"],
+        kv_cols=[("Vagas", "VAGAS_RESERVADAS")],
+        max_items=None,
+    )
 
-st.markdown("<div class='nir-card'>", unsafe_allow_html=True)
-render_section_header("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
-render_table(df_vagas)
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("")
+    section_title("TRANSFERÊNCIAS/SAÍDAS")
+    render_mobile_list(
+        df_transf,
+        title_cols=["DESCRIÇÃO"],
+        kv_cols=[("Total", "TOTAL")],
+        max_items=None,
+    )
+else:
+    # Web/TV: tabelas normais
+    st.subheader("ALTAS")
+    st.dataframe(safe_df_for_display(df_altas), use_container_width=True, hide_index=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
+    st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
+    st.dataframe(safe_df_for_display(df_vagas), use_container_width=True, hide_index=True)
 
-st.markdown("")
-
-st.markdown("<div class='nir-card'>", unsafe_allow_html=True)
-render_section_header("TRANSFERÊNCIAS/SAÍDAS")
-render_table(df_transf)
-st.markdown("</div>", unsafe_allow_html=True)
+    st.subheader("TRANSFERÊNCIAS/SAÍDAS")
+    st.dataframe(safe_df_for_display(df_transf), use_container_width=True, hide_index=True)
 
 st.caption("Fonte: Google Sheets (Folha1).")
