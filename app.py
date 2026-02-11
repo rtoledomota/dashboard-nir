@@ -3,6 +3,7 @@ import io
 import unicodedata
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
@@ -13,6 +14,8 @@ from streamlit_autorefresh import st_autorefresh
 # CONFIG GERAL
 # ======================
 st.set_page_config(page_title="Painel NIR - Censo Diário", layout="wide")
+
+TIMEZONE = "America/Sao_Paulo"
 
 PRIMARY = "#163A9A"
 PRIMARY_DARK = "#0B2B6B"
@@ -35,8 +38,13 @@ CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:cs
 REFRESH_SECONDS = 60
 st_autorefresh(interval=REFRESH_SECONDS * 1000, key="nir_autorefresh")
 
+
+def agora_local() -> datetime:
+    return datetime.now(ZoneInfo(TIMEZONE))
+
+
 # ======================
-# CSS (subtítulo removido + faixa central menor + logos maiores)
+# CSS (números centralizados + título "Altas previstas..." em 2 linhas)
 # ======================
 st.markdown(
     f"""
@@ -46,10 +54,10 @@ st.markdown(
         color: {TEXT};
       }}
 
-      /* Header: mobile-first com logos maiores e faixa central mais baixa */
+      /* Header: mobile-first com logos maiores e faixa central menor */
       .nir-header {{
         display: grid;
-        grid-template-columns: 86px 1fr 86px; /* laterais maiores = logos maiores */
+        grid-template-columns: 86px 1fr 86px;
         gap: 10px;
         align-items: stretch;
         width: 100%;
@@ -74,7 +82,6 @@ st.markdown(
         display: block;
       }}
 
-      /* Faixa central menor (menos altura + menos padding) */
       .nir-header-center {{
         border: 1px solid rgba(255,255,255,0.15);
         background: linear-gradient(90deg, {PRIMARY_DARK}, {PRIMARY} 45%, {SCS_PURPLE});
@@ -93,8 +100,6 @@ st.markdown(
         letter-spacing: 0.2px;
         line-height: 1.06;
         margin: 0;
-
-        /* evita estourar no mobile */
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
@@ -127,12 +132,19 @@ st.markdown(
         font-weight: 800;
         margin-bottom: 6px;
         font-size: 12px;
+        text-align: center;
       }}
       .nir-card-value {{
         font-weight: 950;
         margin: 0;
         line-height: 1.0;
         font-size: 22px;
+        text-align: center;
+      }}
+
+      .nir-card-title.twoline {{
+        line-height: 1.05;
+        white-space: normal;
       }}
 
       .nir-section-title {{
@@ -175,8 +187,8 @@ st.markdown(
 
       /* Variáveis: mobile */
       :root {{
-        --nir-header-h: 62px;  /* faixa menor */
-        --nir-logo-h: 48px;    /* logos maiores */
+        --nir-header-h: 62px;
+        --nir-logo-h: 48px;
       }}
 
       @media (max-width: 768px) {{
@@ -191,12 +203,12 @@ st.markdown(
       /* Desktop/TV */
       @media (min-width: 1200px) {{
         :root {{
-          --nir-header-h: 96px;   /* faixa central menor que antes */
-          --nir-logo-h: 78px;     /* logos maiores */
+          --nir-header-h: 96px;
+          --nir-logo-h: 78px;
         }}
 
         .nir-header {{
-          grid-template-columns: 1fr 3.2fr 1fr; /* centro um pouco menor que 4fr */
+          grid-template-columns: 1fr 3.2fr 1fr;
           gap: 12px;
         }}
 
@@ -223,7 +235,7 @@ st.markdown(
 )
 
 # ======================
-# Helpers
+# Helpers (dados)
 # ======================
 def _remover_acentos(s: str) -> str:
     return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode("ascii")
@@ -308,7 +320,7 @@ def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas
       </div>
 
       <div class="nir-card">
-        <div class="nir-card-title">Altas previstas (24h)</div>
+        <div class="nir-card-title twoline">Altas previstas<br>em 24h</div>
         <div class="nir-card-value" style="color:{ACCENT_GREEN}">{total_previstas}</div>
       </div>
 
@@ -454,7 +466,6 @@ st.markdown(
       <div class="nir-header-box nir-header-logo">{left_img_html}</div>
       <div class="nir-header-box nir-header-center">
         <div class="nir-top-title">Painel NIR – Censo Diário</div>
-        <div class="nir-top-sub"></div>
       </div>
       <div class="nir-header-box nir-header-logo">{right_img_html}</div>
     </div>
@@ -465,7 +476,7 @@ st.markdown(
 st.markdown("")
 
 # ======================
-# CONTROLES + MODO CELULAR
+# CONTROLES + MODO CELULAR (horário com timezone)
 # ======================
 c1, c2, c3 = st.columns([1.4, 2.6, 2.0])
 with c1:
@@ -474,7 +485,7 @@ with c1:
 with c2:
     modo_mobile = st.toggle("Modo celular (lista)", value=True)
 with c3:
-    st.caption(f"Atualizado: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+    st.caption(f"Atualizado: {agora_local().strftime('%d/%m/%Y %H:%M:%S')}")
 
 st.markdown("")
 
