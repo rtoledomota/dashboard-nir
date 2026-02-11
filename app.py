@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (FORÇA as mudanças)
+# CSS (layout + cards; tabelas centralizadas via Styler)
 # ======================
 st.markdown(
     f"""
@@ -165,6 +165,7 @@ st.markdown(
       .nir-item-row {{
         display: flex;
         justify-content: space-between;
+        align-items: center;
         gap: 12px;
         font-size: 12px;
         color: {TEXT};
@@ -174,20 +175,10 @@ st.markdown(
         font-weight: 800;
         margin-right: 6px;
       }}
-
-      /* valor do "modo lista" centralizado (isso é o que faltava no mobile) */
       .nir-item-value {{
         font-weight: 950;
         text-align: center !important;
-        min-width: 52px;
-      }}
-
-      /* ========= CENTRALIZAÇÃO DAS TABELAS (st.dataframe) ========= */
-      div[data-testid="stDataFrame"] table td {{
-        text-align: center !important;
-      }}
-      div[data-testid="stDataFrame"] table th {{
-        text-align: center !important;
+        min-width: 56px;
       }}
 
       /* ========= RESPONSIVO ========= */
@@ -280,7 +271,6 @@ def safe_df_for_display(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
     df = df.copy()
-
     cols = list(df.columns)
     seen: dict[str, int] = {}
     new_cols = []
@@ -316,8 +306,18 @@ def section_title(title: str):
     st.markdown(f"<div class='nir-section-title'>{title}</div>", unsafe_allow_html=True)
 
 
+def dataframe_centralizado(df: pd.DataFrame):
+    df = safe_df_for_display(df)
+    if df.empty:
+        st.info("Sem dados para exibir.")
+        return
+
+    styler = df.style.set_properties(**{"text-align": "center"})
+    styler = styler.set_table_styles([{"selector": "th", "props": [("text-align", "center")]}])
+    st.dataframe(styler, use_container_width=True, hide_index=True)
+
+
 def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas: int, total_transf: int):
-    # QUEBRA FIXA e CENTRALIZADA: "Altas previstas" / "em 24h"
     metrics_html = f"""
     <div class="nir-metrics-grid">
       <div class="nir-card">
@@ -582,12 +582,12 @@ if modo_mobile:
     )
 else:
     st.subheader("ALTAS")
-    st.dataframe(safe_df_for_display(df_altas), use_container_width=True, hide_index=True)
+    dataframe_centralizado(df_altas)
 
     st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
-    st.dataframe(safe_df_for_display(df_vagas), use_container_width=True, hide_index=True)
+    dataframe_centralizado(df_vagas)
 
     st.subheader("TRANSFERÊNCIAS/SAÍDAS")
-    st.dataframe(safe_df_for_display(df_transf), use_container_width=True, hide_index=True)
+    dataframe_centralizado(df_transf)
 
 st.caption("Fonte: Google Sheets (Folha1).")
