@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (layout + cards)
+# CSS (inclui tabela HTML centralizada)
 # ======================
 st.markdown(
     f"""
@@ -179,6 +179,38 @@ st.markdown(
         font-weight: 950;
         text-align: right;
         min-width: 56px;
+      }}
+
+      /* ========= TABELA HTML (DESKTOP) ========= */
+      .nir-table-wrap {{
+        background: {CARD_BG};
+        border: 1px solid {BORDER};
+        border-radius: 14px;
+        overflow: auto;
+      }}
+      table.nir-table {{
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }}
+      table.nir-table thead th {{
+        position: sticky;
+        top: 0;
+        background: #F8FAFC;
+        color: {TEXT};
+        text-align: center;
+        font-weight: 900;
+        padding: 10px 10px;
+        border-bottom: 1px solid {BORDER};
+        white-space: nowrap;
+      }}
+      table.nir-table tbody td {{
+        text-align: center;
+        padding: 9px 10px;
+        border-bottom: 1px solid {BORDER};
+      }}
+      table.nir-table tbody tr:nth-child(even) td {{
+        background: #FCFDFE;
       }}
 
       /* ========= RESPONSIVO ========= */
@@ -334,17 +366,11 @@ def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas
     st.markdown(metrics_html, unsafe_allow_html=True)
 
 
-def render_mobile_list(
-    df: pd.DataFrame,
-    title_cols: list[str],
-    kv_cols: list[tuple[str, str]],
-    max_items: int | None = None,
-):
+def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tuple[str, str]], max_items: int | None = None):
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
-
     if max_items is not None:
         df = df.head(max_items)
 
@@ -375,21 +401,17 @@ def render_mobile_list(
     st.markdown(items_html, unsafe_allow_html=True)
 
 
-def dataframe_centralizado(df: pd.DataFrame):
+def dataframe_html_centralizado(df: pd.DataFrame):
     """
-    Centraliza 100% no DESKTOP usando Pandas Styler (não depende de CSS do Streamlit).
+    Desktop: render HTML com centralização garantida (não depende do st.dataframe).
     """
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
 
-    styler = df.style.set_properties(**{"text-align": "center"})
-    styler = styler.set_table_styles(
-        [{"selector": "th", "props": [("text-align", "center")]}]
-    )
-
-    st.dataframe(styler, use_container_width=True, hide_index=True)
+    html = df.to_html(index=False, escape=True, classes=["nir-table"])
+    st.markdown(f"<div class='nir-table-wrap'>{html}</div>", unsafe_allow_html=True)
 
 
 # ======================
@@ -589,12 +611,12 @@ if modo_mobile:
     )
 else:
     st.subheader("ALTAS")
-    dataframe_centralizado(df_altas)
+    dataframe_html_centralizado(df_altas)
 
     st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
-    dataframe_centralizado(df_vagas)
+    dataframe_html_centralizado(df_vagas)
 
     st.subheader("TRANSFERÊNCIAS/SAÍDAS")
-    dataframe_centralizado(df_transf)
+    dataframe_html_centralizado(df_transf)
 
 st.caption("Fonte: Google Sheets (Folha1).")
