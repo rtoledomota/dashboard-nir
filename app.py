@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (números centralizados + título "Altas previstas..." em 2 linhas)
+# CSS (logos maiores + faixa menor + cards com números centralizados)
 # ======================
 st.markdown(
     f"""
@@ -54,10 +54,10 @@ st.markdown(
         color: {TEXT};
       }}
 
-      /* Header: mobile-first com logos maiores e faixa central menor */
+      /* Header */
       .nir-header {{
         display: grid;
-        grid-template-columns: 86px 1fr 86px;
+        grid-template-columns: 110px 1fr 110px; /* aumenta área dos logos */
         gap: 10px;
         align-items: stretch;
         width: 100%;
@@ -88,11 +88,10 @@ st.markdown(
         color: white;
         height: var(--nir-header-h);
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 6px 10px;
+        padding: 6px 10px; /* faixa menor */
       }}
 
       .nir-top-title {{
@@ -100,18 +99,14 @@ st.markdown(
         letter-spacing: 0.2px;
         line-height: 1.06;
         margin: 0;
+
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
       }}
 
-      /* Subtítulo removido */
-      .nir-top-sub {{
-        display: none;
-      }}
-
-      /* Métricas - GRID com colunas mais estreitas */
+      /* Métricas (cards) */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -119,19 +114,19 @@ st.markdown(
         margin-top: 10px;
       }}
 
-      /* Cards - centralização TOTAL */
       .nir-card {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
         border-radius: 16px;
-        padding: 12px 10px; /* padding menor para colunas mais estreitas */
+        padding: 12px 10px; /* reduz largura visual */
         box-shadow: 0 1px 0 rgba(16,24,40,0.02);
+
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        min-height: 100px;
+        min-height: 96px;
       }}
 
       .nir-card-title {{
@@ -140,8 +135,8 @@ st.markdown(
         margin-bottom: 8px;
         font-size: 12px;
         text-align: center;
-        line-height: 1.2;
         width: 100%;
+        line-height: 1.15;
       }}
 
       .nir-card-value {{
@@ -151,13 +146,6 @@ st.markdown(
         font-size: 22px;
         text-align: center;
         width: 100%;
-      }}
-
-      /* Classe especial para título em duas linhas */
-      .two-line-title {{
-        line-height: 1.1;
-        white-space: normal;
-        display: block;
       }}
 
       .nir-section-title {{
@@ -200,8 +188,8 @@ st.markdown(
 
       /* Variáveis: mobile */
       :root {{
-        --nir-header-h: 62px;
-        --nir-logo-h: 48px;
+        --nir-header-h: 58px;  /* faixa menor */
+        --nir-logo-h: 52px;    /* logo maior */
       }}
 
       @media (max-width: 768px) {{
@@ -211,23 +199,22 @@ st.markdown(
           padding-right: 0.85rem;
         }}
         .nir-top-title {{ font-size: 18px; }}
-        .nir-card {{
-          padding: 10px 8px;
-          min-height: 90px;
+        .nir-header {{ grid-template-columns: 96px 1fr 96px; }}
+        :root {{
+          --nir-header-h: 56px;
+          --nir-logo-h: 48px;
         }}
-        .nir-card-title {{ font-size: 11px; }}
-        .nir-card-value {{ font-size: 20px; }}
       }}
 
       /* Desktop/TV */
       @media (min-width: 1200px) {{
         :root {{
-          --nir-header-h: 96px;
-          --nir-logo-h: 78px;
+          --nir-header-h: 86px;
+          --nir-logo-h: 74px;
         }}
 
         .nir-header {{
-          grid-template-columns: 1fr 3.2fr 1fr;
+          grid-template-columns: 1.2fr 2.6fr 1.2fr; /* centro menor, logos maiores */
           gap: 12px;
         }}
 
@@ -240,7 +227,6 @@ st.markdown(
 
         .nir-metrics-grid {{
           grid-template-columns: 1fr 1fr 1fr 1fr;
-          gap: 14px;
         }}
 
         .nir-card {{
@@ -256,7 +242,7 @@ st.markdown(
 )
 
 # ======================
-# Helpers (dados)
+# Helpers
 # ======================
 def _remover_acentos(s: str) -> str:
     return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode("ascii")
@@ -341,7 +327,7 @@ def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas
       </div>
 
       <div class="nir-card">
-        <div class="nir-card-title two-line-title">Altas previstas<br>em 24h</div>
+        <div class="nir-card-title">Altas previstas<br>em 24h</div>
         <div class="nir-card-value" style="color:{ACCENT_GREEN}">{total_previstas}</div>
       </div>
 
@@ -473,10 +459,126 @@ def montar_transferencias(rows: list[list[str]], i_transf_title: int) -> pd.Data
 
 
 # ======================
-# HEADER
+# HEADER (com data URI; sem subtítulo)
 # ======================
 left_uri = img_to_data_uri(LOGO_LEFT_PATH)
 right_uri = img_to_data_uri(LOGO_RIGHT_PATH)
 
 left_img_html = f"<img src='{left_uri}' alt='Logo esquerda' />" if left_uri else "<div style='color:#64748B;font-weight:700'>Logo esquerda</div>"
-right_img_html = f"<img src='{right_uri}' alt='Logo direita' />
+right_img_html = f"<img src='{right_uri}' alt='Logo direita' />" if right_uri else "<div style='color:#64748B;font-weight:700'>Logo direita</div>"
+
+st.markdown(
+    f"""
+    <div class="nir-header">
+      <div class="nir-header-box nir-header-logo">{left_img_html}</div>
+      <div class="nir-header-box nir-header-center">
+        <div class="nir-top-title">Painel NIR – Censo Diário</div>
+      </div>
+      <div class="nir-header-box nir-header-logo">{right_img_html}</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown("")
+
+# ======================
+# CONTROLES
+# ======================
+c1, c2, c3 = st.columns([1.4, 2.6, 2.0])
+with c1:
+    if st.button("Atualizar agora"):
+        st.cache_data.clear()
+with c2:
+    modo_mobile = st.toggle("Modo celular (lista)", value=True)
+with c3:
+    st.caption(f"Atualizado: {agora_local().strftime('%d/%m/%Y %H:%M:%S')}")
+
+st.markdown("")
+
+# ======================
+# LOAD + PARSE
+# ======================
+try:
+    rows = baixar_csv_como_matriz(CSV_URL)
+except Exception:
+    st.error("Não foi possível carregar o CSV da planilha. Verifique permissões/publicação do Google Sheets.")
+    st.stop()
+
+i_altas_header = achar_linha_por_substring(rows, "ALTAS")
+i_vagas_title = achar_linha_por_substring(rows, "VAGAS RESERVADAS")
+i_transf_title = achar_linha_por_substring(rows, "TRANSFERENCIAS")
+
+missing = []
+if i_altas_header is None:
+    missing.append("ALTAS")
+if i_vagas_title is None:
+    missing.append("VAGAS RESERVADAS")
+if i_transf_title is None:
+    missing.append("TRANSFERENCIAS")
+
+if missing:
+    st.error("Não encontrei estes marcadores no CSV: " + ", ".join(missing))
+    st.stop()
+
+df_altas = montar_altas(rows, i_altas_header, i_vagas_title)
+df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
+df_transf = montar_transferencias(rows, i_transf_title)
+
+# ======================
+# MÉTRICAS
+# ======================
+col_realizadas = find_col_by_contains(df_altas, "ALTAS DO DIA") if not df_altas.empty else None
+col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS") if not df_altas.empty else None
+
+total_realizadas = int(df_altas[col_realizadas].sum()) if col_realizadas else 0
+total_previstas = int(df_altas[col_previstas].sum()) if col_previstas else 0
+total_vagas = int(df_vagas["VAGAS_RESERVADAS"].sum()) if not df_vagas.empty else 0
+total_transf = int(df_transf["TOTAL"].sum()) if not df_transf.empty else 0
+
+render_metric_cards(total_realizadas, total_previstas, total_vagas, total_transf)
+
+st.markdown("")
+
+# ======================
+# CONTEÚDO
+# ======================
+if modo_mobile:
+    section_title("ALTAS")
+    col_dia = find_col_by_contains(df_altas, "ALTAS DO DIA") or "ALTAS DO DIA"
+    col_prev = find_col_by_contains(df_altas, "ALTAS PREVISTAS") or "ALTAS PREVISTAS"
+    render_mobile_list(
+        df_altas,
+        title_cols=["HOSPITAL", "SETOR"],
+        kv_cols=[("Altas do dia", col_dia), ("Previstas", col_prev)],
+        max_items=None,
+    )
+
+    st.markdown("")
+    section_title("VAGAS RESERVADAS (DIA SEGUINTE)")
+    render_mobile_list(
+        df_vagas,
+        title_cols=["HOSPITAL", "SETOR"],
+        kv_cols=[("Vagas", "VAGAS_RESERVADAS")],
+        max_items=None,
+    )
+
+    st.markdown("")
+    section_title("TRANSFERÊNCIAS/SAÍDAS")
+    render_mobile_list(
+        df_transf,
+        title_cols=["DESCRIÇÃO"],
+        kv_cols=[("Total", "TOTAL")],
+        max_items=None,
+    )
+else:
+    st.subheader("ALTAS")
+    st.dataframe(safe_df_for_display(df_altas), use_container_width=True, hide_index=True)
+
+    st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
+    st.dataframe(safe_df_for_display(df_vagas), use_container_width=True, hide_index=True)
+
+    st.subheader("TRANSFERÊNCIAS/SAÍDAS")
+    st.dataframe(safe_df_for_display(df_transf), use_container_width=True, hide_index=True)
+
+st.caption("Fonte: Google Sheets (Folha1).")
