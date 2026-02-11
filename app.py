@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (logos maiores + faixa menor + cards com números centralizados)
+# CSS (cards + header + centralização numérica nas tabelas)
 # ======================
 st.markdown(
     f"""
@@ -54,10 +54,12 @@ st.markdown(
         color: {TEXT};
       }}
 
-      /* Header */
+      /* ----------------------
+         HEADER (logos maiores + faixa menor)
+      ---------------------- */
       .nir-header {{
         display: grid;
-        grid-template-columns: 110px 1fr 110px; /* aumenta área dos logos */
+        grid-template-columns: 110px 1fr 110px;
         gap: 10px;
         align-items: stretch;
         width: 100%;
@@ -91,7 +93,7 @@ st.markdown(
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 6px 10px; /* faixa menor */
+        padding: 6px 10px;
       }}
 
       .nir-top-title {{
@@ -106,7 +108,45 @@ st.markdown(
         overflow: hidden;
       }}
 
-      /* Métricas (cards) */
+      :root {{
+        --nir-header-h: 58px;
+        --nir-logo-h: 52px;
+      }}
+
+      @media (max-width: 768px) {{
+        .block-container {{
+          padding-top: 0.7rem;
+          padding-left: 0.85rem;
+          padding-right: 0.85rem;
+        }}
+        .nir-top-title {{ font-size: 18px; }}
+        .nir-header {{ grid-template-columns: 96px 1fr 96px; }}
+        :root {{
+          --nir-header-h: 56px;
+          --nir-logo-h: 48px;
+        }}
+      }}
+
+      @media (min-width: 1200px) {{
+        :root {{
+          --nir-header-h: 86px;
+          --nir-logo-h: 74px;
+        }}
+        .nir-header {{
+          grid-template-columns: 1.2fr 2.6fr 1.2fr;
+          gap: 12px;
+        }}
+        .nir-top-title {{
+          font-size: 40px;
+          -webkit-line-clamp: unset;
+          display: block;
+          overflow: visible;
+        }}
+      }}
+
+      /* ----------------------
+         CARDS (centralizar números + quebra "Altas previstas em 24h")
+      ---------------------- */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -118,7 +158,7 @@ st.markdown(
         background: {CARD_BG};
         border: 1px solid {BORDER};
         border-radius: 16px;
-        padding: 12px 10px; /* reduz largura visual */
+        padding: 12px 10px;
         box-shadow: 0 1px 0 rgba(16,24,40,0.02);
 
         display: flex;
@@ -148,93 +188,45 @@ st.markdown(
         width: 100%;
       }}
 
-      .nir-section-title {{
-        font-weight: 950;
-        margin-bottom: 8px;
-        color: {TEXT};
-        font-size: 15px;
-      }}
-
-      /* Lista mobile */
-      .nir-list {{
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }}
-      .nir-item {{
-        border: 1px solid {BORDER};
-        border-radius: 14px;
-        padding: 10px 12px;
-        background: #FFFFFF;
-      }}
-      .nir-item-title {{
-        font-weight: 900;
-        font-size: 13px;
-        margin-bottom: 6px;
-        color: {TEXT};
-      }}
-      .nir-item-row {{
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        font-size: 12px;
-        color: {TEXT};
-      }}
-      .nir-item-row span {{
-        color: {MUTED};
-        font-weight: 800;
-        margin-right: 6px;
-      }}
-
-      /* Variáveis: mobile */
-      :root {{
-        --nir-header-h: 58px;  /* faixa menor */
-        --nir-logo-h: 52px;    /* logo maior */
-      }}
-
-      @media (max-width: 768px) {{
-        .block-container {{
-          padding-top: 0.7rem;
-          padding-left: 0.85rem;
-          padding-right: 0.85rem;
-        }}
-        .nir-top-title {{ font-size: 18px; }}
-        .nir-header {{ grid-template-columns: 96px 1fr 96px; }}
-        :root {{
-          --nir-header-h: 56px;
-          --nir-logo-h: 48px;
-        }}
-      }}
-
-      /* Desktop/TV */
       @media (min-width: 1200px) {{
-        :root {{
-          --nir-header-h: 86px;
-          --nir-logo-h: 74px;
-        }}
-
-        .nir-header {{
-          grid-template-columns: 1.2fr 2.6fr 1.2fr; /* centro menor, logos maiores */
-          gap: 12px;
-        }}
-
-        .nir-top-title {{
-          font-size: 40px;
-          -webkit-line-clamp: unset;
-          display: block;
-          overflow: visible;
-        }}
-
         .nir-metrics-grid {{
           grid-template-columns: 1fr 1fr 1fr 1fr;
         }}
-
         .nir-card {{
           padding: 14px 12px;
           min-height: 110px;
         }}
         .nir-card-title {{ font-size: 13px; }}
         .nir-card-value {{ font-size: 32px; }}
+      }}
+
+      /* ----------------------
+         TABELAS (centralizar células numéricas)
+         Alvos do DataFrame do Streamlit
+      ---------------------- */
+
+      /* 1) Tenta centralizar tudo (se quiser só números, veja regras abaixo) */
+      /* div[data-testid="stDataFrame"] td { text-align: center !important; } */
+
+      /* 2) Centraliza SOMENTE quando a célula for detectada como "numérica" (mais seguro visualmente) */
+      div[data-testid="stDataFrame"] td[data-testid="stTableCell"] {{
+        text-align: left;
+      }}
+
+      /* Streamlit costuma marcar alinhamento de célula via classes;
+         forçamos o centro quando houver estilo/atributo indicando número */
+      div[data-testid="stDataFrame"] td[data-testid="stTableCell"][style*="text-align: right"],
+      div[data-testid="stDataFrame"] td[data-testid="stTableCell"][style*="text-align:right"] {{
+        text-align: center !important;
+      }}
+
+      /* Também pega alguns casos em que o conteúdo é renderizado em <div> interno */
+      div[data-testid="stDataFrame"] td[data-testid="stTableCell"] > div {{
+        width: 100%;
+      }}
+      div[data-testid="stDataFrame"] td[data-testid="stTableCell"][style*="text-align: right"] > div,
+      div[data-testid="stDataFrame"] td[data-testid="stTableCell"][style*="text-align:right"] > div {{
+        text-align: center !important;
       }}
     </style>
     """,
@@ -459,7 +451,7 @@ def montar_transferencias(rows: list[list[str]], i_transf_title: int) -> pd.Data
 
 
 # ======================
-# HEADER (com data URI; sem subtítulo)
+# HEADER
 # ======================
 left_uri = img_to_data_uri(LOGO_LEFT_PATH)
 right_uri = img_to_data_uri(LOGO_RIGHT_PATH)
