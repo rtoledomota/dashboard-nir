@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (layout + cards + centralização das tabelas)
+# CSS (FORÇA as mudanças)
 # ======================
 st.markdown(
     f"""
@@ -62,9 +62,7 @@ st.markdown(
         align-items: stretch;
         width: 100%;
       }}
-
       .nir-header-box {{ border-radius: 16px; }}
-
       .nir-header-logo {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
@@ -74,14 +72,12 @@ st.markdown(
         height: var(--nir-header-h);
         padding: 6px;
       }}
-
       .nir-header-logo img {{
         height: var(--nir-logo-h);
         width: auto;
         object-fit: contain;
         display: block;
       }}
-
       .nir-header-center {{
         border: 1px solid rgba(255,255,255,0.15);
         background: linear-gradient(90deg, {PRIMARY_DARK}, {PRIMARY} 45%, {SCS_PURPLE});
@@ -91,36 +87,32 @@ st.markdown(
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 6px 10px; /* faixa menor */
+        padding: 6px 10px;
       }}
-
       .nir-top-title {{
         font-weight: 980;
         letter-spacing: 0.2px;
         line-height: 1.06;
         margin: 0;
-
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
       }}
 
-      /* ========= MÉTRICAS (CARDS) ========= */
+      /* ========= MÉTRICAS ========= */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-top: 10px;
       }}
-
       .nir-card {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
         border-radius: 16px;
-        padding: 12px 10px; /* mais compacto para “estreitar” colunas */
+        padding: 12px 10px;
         box-shadow: 0 1px 0 rgba(16,24,40,0.02);
-
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -128,34 +120,31 @@ st.markdown(
         text-align: center;
         min-height: 96px;
       }}
-
       .nir-card-title {{
         color: {MUTED};
-        font-weight: 800;
+        font-weight: 900;
         margin-bottom: 8px;
         font-size: 12px;
-        text-align: center;
+        text-align: center !important;
         width: 100%;
-        line-height: 1.15;
+        line-height: 1.12;
       }}
-
       .nir-card-value {{
         font-weight: 950;
         margin: 0;
         line-height: 1.0;
         font-size: 22px;
-        text-align: center;
+        text-align: center !important;
         width: 100%;
       }}
 
+      /* ========= LISTA MOBILE ========= */
       .nir-section-title {{
         font-weight: 950;
         margin-bottom: 8px;
         color: {TEXT};
         font-size: 15px;
       }}
-
-      /* ========= LISTA MOBILE ========= */
       .nir-list {{
         display: flex;
         flex-direction: column;
@@ -186,7 +175,14 @@ st.markdown(
         margin-right: 6px;
       }}
 
-      /* ========= CENTRALIZAÇÃO DA TABELA (st.dataframe) ========= */
+      /* valor do "modo lista" centralizado (isso é o que faltava no mobile) */
+      .nir-item-value {{
+        font-weight: 950;
+        text-align: center !important;
+        min-width: 52px;
+      }}
+
+      /* ========= CENTRALIZAÇÃO DAS TABELAS (st.dataframe) ========= */
       div[data-testid="stDataFrame"] table td {{
         text-align: center !important;
       }}
@@ -199,7 +195,6 @@ st.markdown(
         --nir-header-h: 58px;
         --nir-logo-h: 52px;
       }}
-
       @media (max-width: 768px) {{
         .block-container {{
           padding-top: 0.7rem;
@@ -213,30 +208,25 @@ st.markdown(
           --nir-logo-h: 48px;
         }}
       }}
-
       @media (min-width: 1200px) {{
         :root {{
           --nir-header-h: 86px;
           --nir-logo-h: 74px;
         }}
-
         .nir-header {{
-          grid-template-columns: 1.2fr 2.6fr 1.2fr; /* faixa central menor */
+          grid-template-columns: 1.2fr 2.6fr 1.2fr;
           gap: 12px;
         }}
-
         .nir-top-title {{
           font-size: 40px;
           -webkit-line-clamp: unset;
           display: block;
           overflow: visible;
         }}
-
         .nir-metrics-grid {{
           grid-template-columns: 1fr 1fr 1fr 1fr;
           gap: 14px;
         }}
-
         .nir-card {{
           padding: 14px 12px;
           min-height: 110px;
@@ -327,6 +317,7 @@ def section_title(title: str):
 
 
 def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas: int, total_transf: int):
+    # QUEBRA FIXA e CENTRALIZADA: "Altas previstas" / "em 24h"
     metrics_html = f"""
     <div class="nir-metrics-grid">
       <div class="nir-card">
@@ -381,7 +372,12 @@ def render_mobile_list(
         for label, colname in kv_cols:
             if colname in df.columns:
                 v = str(row.get(colname, "")).strip()
-                rows_html += f"<div class='nir-item-row'><div><span>{label}:</span>{v}</div></div>"
+                rows_html += (
+                    "<div class='nir-item-row'>"
+                    f"<div><span>{label}:</span></div>"
+                    f"<div class='nir-item-value'>{v}</div>"
+                    "</div>"
+                )
 
         items_html += f"<div class='nir-item'><div class='nir-item-title'>{item_title}</div>{rows_html}</div>"
 
@@ -416,7 +412,6 @@ def montar_altas(rows: list[list[str]], i_altas_header: int, i_vagas_title: int)
 
     df = pd.DataFrame(data, columns=header)
 
-    # compatibilidade
     rename = {"ALTAS HOSPITAL": "HOSPITAL", "SETOR": "SETOR"}
     df = df.rename(columns={c: rename.get(str(c).strip(), str(c).strip()) for c in df.columns})
 
@@ -473,7 +468,7 @@ def montar_transferencias(rows: list[list[str]], i_transf_title: int) -> pd.Data
 
 
 # ======================
-# HEADER (sem subtítulo)
+# HEADER
 # ======================
 left_uri = img_to_data_uri(LOGO_LEFT_PATH)
 right_uri = img_to_data_uri(LOGO_RIGHT_PATH)
