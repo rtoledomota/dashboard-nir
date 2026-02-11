@@ -36,7 +36,7 @@ REFRESH_SECONDS = 60
 st_autorefresh(interval=REFRESH_SECONDS * 1000, key="nir_autorefresh")
 
 # ======================
-# CSS (mobile-friendly)
+# CSS (header mobile corrigido)
 # ======================
 st.markdown(
     f"""
@@ -46,19 +46,13 @@ st.markdown(
         color: {TEXT};
       }}
 
-      /* Header */
+      /* Header: mobile-first */
       .nir-header {{
         display: grid;
-        grid-template-columns: 72px 1fr 72px;
+        grid-template-columns: 56px 1fr 56px; /* laterais menores = mais espaço pro título */
         gap: 8px;
         align-items: stretch;
         width: 100%;
-      }}
-      @media (min-width: 1200px) {{
-        .nir-header {{
-          grid-template-columns: 1fr 4fr 1fr;
-          gap: 10px;
-        }}
       }}
 
       .nir-header-box {{ border-radius: 16px; }}
@@ -70,8 +64,9 @@ st.markdown(
         align-items: center;
         justify-content: center;
         height: var(--nir-header-h);
-        padding: 8px;
+        padding: 6px;
       }}
+
       .nir-header-logo img {{
         height: var(--nir-logo-h);
         width: auto;
@@ -87,34 +82,36 @@ st.markdown(
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: center; /* centraliza verticalmente */
         text-align: center;
-        padding: 10px 12px;
+        padding: 8px 10px;
       }}
 
       .nir-top-title {{
         font-weight: 980;
         letter-spacing: 0.2px;
-        line-height: 1.05;
+        line-height: 1.08;
         margin: 0;
+
+        /* trava em até 2 linhas no mobile */
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
       }}
+
       .nir-top-sub {{
         margin-top: 6px;
         opacity: 0.92;
         margin-bottom: 0;
       }}
 
-      /* Grids */
+      /* Métricas */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-top: 10px;
-      }}
-      @media (min-width: 1200px) {{
-        .nir-metrics-grid {{
-          grid-template-columns: 1fr 1fr 1fr 1fr;
-        }}
       }}
 
       .nir-card {{
@@ -137,14 +134,6 @@ st.markdown(
         font-size: 22px;
       }}
 
-      @media (min-width: 1200px) {{
-        .nir-card {{
-          padding: 14px 16px;
-        }}
-        .nir-card-title {{ font-size: 13px; }}
-        .nir-card-value {{ font-size: 32px; }}
-      }}
-
       .nir-section-title {{
         font-weight: 950;
         margin-bottom: 8px;
@@ -152,7 +141,7 @@ st.markdown(
         font-size: 15px;
       }}
 
-      /* Lista mobile (em vez de tabela) */
+      /* Lista mobile */
       .nir-list {{
         display: flex;
         flex-direction: column;
@@ -183,18 +172,10 @@ st.markdown(
         margin-right: 6px;
       }}
 
-      /* Variáveis de altura do header */
+      /* Variáveis: mobile */
       :root {{
-        --nir-header-h: 72px;
-        --nir-logo-h: 44px;
-      }}
-      @media (min-width: 1200px) {{
-        :root {{
-          --nir-header-h: 110px;
-          --nir-logo-h: 72px;
-        }}
-        .nir-top-title {{ font-size: 40px; }}
-        .nir-top-sub {{ font-size: 15px; }}
+        --nir-header-h: 68px;
+        --nir-logo-h: 38px;
       }}
 
       @media (max-width: 768px) {{
@@ -204,7 +185,43 @@ st.markdown(
           padding-right: 0.85rem;
         }}
         .nir-top-title {{ font-size: 18px; }}
-        .nir-top-sub {{ font-size: 12px; }}
+
+        /* remove subtítulo no mobile (principal causa de quebra esquisita) */
+        .nir-top-sub {{ display: none; }}
+      }}
+
+      /* Desktop/TV */
+      @media (min-width: 1200px) {{
+        :root {{
+          --nir-header-h: 110px;
+          --nir-logo-h: 72px;
+        }}
+
+        .nir-header {{
+          grid-template-columns: 1fr 4fr 1fr;
+          gap: 10px;
+        }}
+
+        .nir-top-title {{
+          font-size: 40px;
+          -webkit-line-clamp: unset; /* libera no desktop */
+          display: block;
+          overflow: visible;
+        }}
+        .nir-top-sub {{
+          display: block;
+          font-size: 15px;
+        }}
+
+        .nir-metrics-grid {{
+          grid-template-columns: 1fr 1fr 1fr 1fr;
+        }}
+
+        .nir-card {{
+          padding: 14px 16px;
+        }}
+        .nir-card-title {{ font-size: 13px; }}
+        .nir-card-value {{ font-size: 32px; }}
       }}
     </style>
     """,
@@ -326,7 +343,6 @@ def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tu
 
     items_html = "<div class='nir-list'>"
     for _, row in df.iterrows():
-        # título: concatena colunas principais que existirem
         parts = []
         for c in title_cols:
             if c in df.columns:
@@ -335,7 +351,6 @@ def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tu
                     parts.append(v)
         item_title = " • ".join(parts) if parts else "Item"
 
-        # linhas chave-valor (só se coluna existir)
         rows_html = ""
         for label, colname in kv_cols:
             if colname in df.columns:
@@ -349,7 +364,7 @@ def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tu
 
 
 # ======================
-# Parsing do CSV (3 blocos)
+# Parsing do CSV
 # ======================
 def montar_altas(rows: list[list[str]], i_altas_header: int, i_vagas_title: int) -> pd.DataFrame:
     bloco = slice_rows(rows, i_altas_header, i_vagas_title)
@@ -514,12 +529,10 @@ render_metric_cards(total_realizadas, total_previstas, total_vagas, total_transf
 st.markdown("")
 
 # ======================
-# CONTEÚDO (Mobile: lista | Web: tabela)
+# CONTEÚDO
 # ======================
 if modo_mobile:
     section_title("ALTAS")
-    # Título do item: Hospital + Setor (se existirem)
-    # Campos: Altas do dia / previstas (se existirem)
     col_dia = find_col_by_contains(df_altas, "ALTAS DO DIA") or "ALTAS DO DIA"
     col_prev = find_col_by_contains(df_altas, "ALTAS PREVISTAS") or "ALTAS PREVISTAS"
     render_mobile_list(
@@ -547,7 +560,6 @@ if modo_mobile:
         max_items=None,
     )
 else:
-    # Web/TV: tabelas normais
     st.subheader("ALTAS")
     st.dataframe(safe_df_for_display(df_altas), use_container_width=True, hide_index=True)
 
