@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (layout + cards; tabelas centralizadas via Styler)
+# CSS (layout + cards)
 # ======================
 st.markdown(
     f"""
@@ -177,7 +177,7 @@ st.markdown(
       }}
       .nir-item-value {{
         font-weight: 950;
-        text-align: center !important;
+        text-align: right;
         min-width: 56px;
       }}
 
@@ -271,6 +271,7 @@ def safe_df_for_display(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
     df = df.copy()
+
     cols = list(df.columns)
     seen: dict[str, int] = {}
     new_cols = []
@@ -304,17 +305,6 @@ def img_to_data_uri(path: Path) -> str:
 
 def section_title(title: str):
     st.markdown(f"<div class='nir-section-title'>{title}</div>", unsafe_allow_html=True)
-
-
-def dataframe_centralizado(df: pd.DataFrame):
-    df = safe_df_for_display(df)
-    if df.empty:
-        st.info("Sem dados para exibir.")
-        return
-
-    styler = df.style.set_properties(**{"text-align": "center"})
-    styler = styler.set_table_styles([{"selector": "th", "props": [("text-align", "center")]}])
-    st.dataframe(styler, use_container_width=True, hide_index=True)
 
 
 def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas: int, total_transf: int):
@@ -383,6 +373,23 @@ def render_mobile_list(
 
     items_html += "</div>"
     st.markdown(items_html, unsafe_allow_html=True)
+
+
+def dataframe_centralizado(df: pd.DataFrame):
+    """
+    Centraliza 100% no DESKTOP usando Pandas Styler (não depende de CSS do Streamlit).
+    """
+    df = safe_df_for_display(df)
+    if df.empty:
+        st.info("Sem dados para exibir.")
+        return
+
+    styler = df.style.set_properties(**{"text-align": "center"})
+    styler = styler.set_table_styles(
+        [{"selector": "th", "props": [("text-align", "center")]}]
+    )
+
+    st.dataframe(styler, use_container_width=True, hide_index=True)
 
 
 # ======================
