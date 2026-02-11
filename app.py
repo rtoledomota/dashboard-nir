@@ -111,7 +111,7 @@ st.markdown(
         display: none;
       }}
 
-      /* Métricas */
+      /* Métricas - GRID com colunas mais estreitas */
       .nir-metrics-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -119,32 +119,45 @@ st.markdown(
         margin-top: 10px;
       }}
 
-      /* Cards */
+      /* Cards - centralização TOTAL */
       .nir-card {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
         border-radius: 16px;
-        padding: 12px 14px;
+        padding: 12px 10px; /* padding menor para colunas mais estreitas */
         box-shadow: 0 1px 0 rgba(16,24,40,0.02);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 100px;
       }}
+
       .nir-card-title {{
         color: {MUTED};
         font-weight: 800;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         font-size: 12px;
         text-align: center;
+        line-height: 1.2;
+        width: 100%;
       }}
+
       .nir-card-value {{
         font-weight: 950;
         margin: 0;
         line-height: 1.0;
         font-size: 22px;
         text-align: center;
+        width: 100%;
       }}
 
-      .nir-card-title.twoline {{
-        line-height: 1.05;
+      /* Classe especial para título em duas linhas */
+      .two-line-title {{
+        line-height: 1.1;
         white-space: normal;
+        display: block;
       }}
 
       .nir-section-title {{
@@ -198,6 +211,12 @@ st.markdown(
           padding-right: 0.85rem;
         }}
         .nir-top-title {{ font-size: 18px; }}
+        .nir-card {{
+          padding: 10px 8px;
+          min-height: 90px;
+        }}
+        .nir-card-title {{ font-size: 11px; }}
+        .nir-card-value {{ font-size: 20px; }}
       }}
 
       /* Desktop/TV */
@@ -221,10 +240,12 @@ st.markdown(
 
         .nir-metrics-grid {{
           grid-template-columns: 1fr 1fr 1fr 1fr;
+          gap: 14px;
         }}
 
         .nir-card {{
-          padding: 14px 16px;
+          padding: 14px 12px;
+          min-height: 110px;
         }}
         .nir-card-title {{ font-size: 13px; }}
         .nir-card-value {{ font-size: 32px; }}
@@ -315,22 +336,22 @@ def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas
     metrics_html = f"""
     <div class="nir-metrics-grid">
       <div class="nir-card">
-        <div class="nir-card-title">Altas realizadas (até 19h)</div>
+        <div class="nir-card-title">Altas realizadas<br>(até 19h)</div>
         <div class="nir-card-value" style="color:{PRIMARY}">{total_realizadas}</div>
       </div>
 
       <div class="nir-card">
-        <div class="nir-card-title twoline">Altas previstas<br>em 24h</div>
+        <div class="nir-card-title two-line-title">Altas previstas<br>em 24h</div>
         <div class="nir-card-value" style="color:{ACCENT_GREEN}">{total_previstas}</div>
       </div>
 
       <div class="nir-card">
-        <div class="nir-card-title">Vagas reservadas (dia seguinte)</div>
+        <div class="nir-card-title">Vagas reservadas<br>(dia seguinte)</div>
         <div class="nir-card-value" style="color:{SCS_PURPLE}">{total_vagas}</div>
       </div>
 
       <div class="nir-card">
-        <div class="nir-card-title">Transferências/Saídas (total)</div>
+        <div class="nir-card-title">Transferências/<br>Saídas (total)</div>
         <div class="nir-card-value" style="color:{SCS_CYAN}">{total_transf}</div>
       </div>
     </div>
@@ -458,120 +479,4 @@ left_uri = img_to_data_uri(LOGO_LEFT_PATH)
 right_uri = img_to_data_uri(LOGO_RIGHT_PATH)
 
 left_img_html = f"<img src='{left_uri}' alt='Logo esquerda' />" if left_uri else "<div style='color:#64748B;font-weight:700'>Logo esquerda</div>"
-right_img_html = f"<img src='{right_uri}' alt='Logo direita' />" if right_uri else "<div style='color:#64748B;font-weight:700'>Logo direita</div>"
-
-st.markdown(
-    f"""
-    <div class="nir-header">
-      <div class="nir-header-box nir-header-logo">{left_img_html}</div>
-      <div class="nir-header-box nir-header-center">
-        <div class="nir-top-title">Painel NIR – Censo Diário</div>
-      </div>
-      <div class="nir-header-box nir-header-logo">{right_img_html}</div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown("")
-
-# ======================
-# CONTROLES + MODO CELULAR (horário com timezone)
-# ======================
-c1, c2, c3 = st.columns([1.4, 2.6, 2.0])
-with c1:
-    if st.button("Atualizar agora"):
-        st.cache_data.clear()
-with c2:
-    modo_mobile = st.toggle("Modo celular (lista)", value=True)
-with c3:
-    st.caption(f"Atualizado: {agora_local().strftime('%d/%m/%Y %H:%M:%S')}")
-
-st.markdown("")
-
-# ======================
-# LOAD + PARSE
-# ======================
-try:
-    rows = baixar_csv_como_matriz(CSV_URL)
-except Exception:
-    st.error("Não foi possível carregar o CSV da planilha. Verifique permissões/publicação do Google Sheets.")
-    st.stop()
-
-i_altas_header = achar_linha_por_substring(rows, "ALTAS")
-i_vagas_title = achar_linha_por_substring(rows, "VAGAS RESERVADAS")
-i_transf_title = achar_linha_por_substring(rows, "TRANSFERENCIAS")
-
-missing = []
-if i_altas_header is None:
-    missing.append("ALTAS")
-if i_vagas_title is None:
-    missing.append("VAGAS RESERVADAS")
-if i_transf_title is None:
-    missing.append("TRANSFERENCIAS")
-
-if missing:
-    st.error("Não encontrei estes marcadores no CSV: " + ", ".join(missing))
-    st.stop()
-
-df_altas = montar_altas(rows, i_altas_header, i_vagas_title)
-df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
-df_transf = montar_transferencias(rows, i_transf_title)
-
-# ======================
-# MÉTRICAS
-# ======================
-col_realizadas = find_col_by_contains(df_altas, "ALTAS DO DIA") if not df_altas.empty else None
-col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS") if not df_altas.empty else None
-
-total_realizadas = int(df_altas[col_realizadas].sum()) if col_realizadas else 0
-total_previstas = int(df_altas[col_previstas].sum()) if col_previstas else 0
-total_vagas = int(df_vagas["VAGAS_RESERVADAS"].sum()) if not df_vagas.empty else 0
-total_transf = int(df_transf["TOTAL"].sum()) if not df_transf.empty else 0
-
-render_metric_cards(total_realizadas, total_previstas, total_vagas, total_transf)
-
-st.markdown("")
-
-# ======================
-# CONTEÚDO
-# ======================
-if modo_mobile:
-    section_title("ALTAS")
-    col_dia = find_col_by_contains(df_altas, "ALTAS DO DIA") or "ALTAS DO DIA"
-    col_prev = find_col_by_contains(df_altas, "ALTAS PREVISTAS") or "ALTAS PREVISTAS"
-    render_mobile_list(
-        df_altas,
-        title_cols=["HOSPITAL", "SETOR"],
-        kv_cols=[("Altas do dia", col_dia), ("Previstas", col_prev)],
-        max_items=None,
-    )
-
-    st.markdown("")
-    section_title("VAGAS RESERVADAS (DIA SEGUINTE)")
-    render_mobile_list(
-        df_vagas,
-        title_cols=["HOSPITAL", "SETOR"],
-        kv_cols=[("Vagas", "VAGAS_RESERVADAS")],
-        max_items=None,
-    )
-
-    st.markdown("")
-    section_title("TRANSFERÊNCIAS/SAÍDAS")
-    render_mobile_list(
-        df_transf,
-        title_cols=["DESCRIÇÃO"],
-        kv_cols=[("Total", "TOTAL")],
-        max_items=None,
-    )
-else:
-    st.subheader("ALTAS")
-    st.dataframe(safe_df_for_display(df_altas), use_container_width=True, hide_index=True)
-
-    st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
-    st.dataframe(safe_df_for_display(df_vagas), use_container_width=True, hide_index=True)
-
-    st.subheader("TRANSFERÊNCIAS/SAÍDAS")
-    st.dataframe(safe_df_for_display(df_transf), use_container_width=True, hide_index=True)
-
-st.caption("Fonte: Google Sheets (Folha1).")
+right_img_html = f"<img src='{right_uri}' alt='Logo direita' />
