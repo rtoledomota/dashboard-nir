@@ -36,7 +36,7 @@ REFRESH_SECONDS = 60
 st_autorefresh(interval=REFRESH_SECONDS * 1000, key="nir_autorefresh")
 
 # ======================
-# CSS (header mobile corrigido)
+# CSS (subtítulo removido + faixa central menor + logos maiores)
 # ======================
 st.markdown(
     f"""
@@ -46,11 +46,11 @@ st.markdown(
         color: {TEXT};
       }}
 
-      /* Header: mobile-first */
+      /* Header: mobile-first com logos maiores e faixa central mais baixa */
       .nir-header {{
         display: grid;
-        grid-template-columns: 56px 1fr 56px; /* laterais menores = mais espaço pro título */
-        gap: 8px;
+        grid-template-columns: 86px 1fr 86px; /* laterais maiores = logos maiores */
+        gap: 10px;
         align-items: stretch;
         width: 100%;
       }}
@@ -74,6 +74,7 @@ st.markdown(
         display: block;
       }}
 
+      /* Faixa central menor (menos altura + menos padding) */
       .nir-header-center {{
         border: 1px solid rgba(255,255,255,0.15);
         background: linear-gradient(90deg, {PRIMARY_DARK}, {PRIMARY} 45%, {SCS_PURPLE});
@@ -82,28 +83,27 @@ st.markdown(
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center; /* centraliza verticalmente */
+        justify-content: center;
         text-align: center;
-        padding: 8px 10px;
+        padding: 6px 10px;
       }}
 
       .nir-top-title {{
         font-weight: 980;
         letter-spacing: 0.2px;
-        line-height: 1.08;
+        line-height: 1.06;
         margin: 0;
 
-        /* trava em até 2 linhas no mobile */
+        /* evita estourar no mobile */
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
       }}
 
+      /* Subtítulo removido */
       .nir-top-sub {{
-        margin-top: 6px;
-        opacity: 0.92;
-        margin-bottom: 0;
+        display: none;
       }}
 
       /* Métricas */
@@ -114,6 +114,7 @@ st.markdown(
         margin-top: 10px;
       }}
 
+      /* Cards */
       .nir-card {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
@@ -174,8 +175,8 @@ st.markdown(
 
       /* Variáveis: mobile */
       :root {{
-        --nir-header-h: 68px;
-        --nir-logo-h: 38px;
+        --nir-header-h: 62px;  /* faixa menor */
+        --nir-logo-h: 48px;    /* logos maiores */
       }}
 
       @media (max-width: 768px) {{
@@ -185,32 +186,25 @@ st.markdown(
           padding-right: 0.85rem;
         }}
         .nir-top-title {{ font-size: 18px; }}
-
-        /* remove subtítulo no mobile (principal causa de quebra esquisita) */
-        .nir-top-sub {{ display: none; }}
       }}
 
       /* Desktop/TV */
       @media (min-width: 1200px) {{
         :root {{
-          --nir-header-h: 110px;
-          --nir-logo-h: 72px;
+          --nir-header-h: 96px;   /* faixa central menor que antes */
+          --nir-logo-h: 78px;     /* logos maiores */
         }}
 
         .nir-header {{
-          grid-template-columns: 1fr 4fr 1fr;
-          gap: 10px;
+          grid-template-columns: 1fr 3.2fr 1fr; /* centro um pouco menor que 4fr */
+          gap: 12px;
         }}
 
         .nir-top-title {{
           font-size: 40px;
-          -webkit-line-clamp: unset; /* libera no desktop */
+          -webkit-line-clamp: unset;
           display: block;
           overflow: visible;
-        }}
-        .nir-top-sub {{
-          display: block;
-          font-size: 15px;
         }}
 
         .nir-metrics-grid {{
@@ -460,7 +454,7 @@ st.markdown(
       <div class="nir-header-box nir-header-logo">{left_img_html}</div>
       <div class="nir-header-box nir-header-center">
         <div class="nir-top-title">Painel NIR – Censo Diário</div>
-        <div class="nir-top-sub">Atualização automática a cada {REFRESH_SECONDS}s • Fonte: Google Sheets</div>
+        <div class="nir-top-sub"></div>
       </div>
       <div class="nir-header-box nir-header-logo">{right_img_html}</div>
     </div>
