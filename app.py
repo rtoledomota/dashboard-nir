@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (inclui tabela HTML centralizada para DESKTOP)
+# CSS
 # ======================
 st.markdown(
     f"""
@@ -274,7 +274,11 @@ def _norm(s: str) -> str:
 
 
 def to_int_series(s: pd.Series) -> pd.Series:
-    return pd.to_numeric(s, errors="coerce").fillna(0).astype(int)
+    # aceita "3", "3.0", "3,0", " 3 "
+    return pd.to_numeric(
+        s.astype(str).str.replace(".", "", regex=False).str.replace(",", ".", regex=False),
+        errors="coerce",
+    ).fillna(0).astype(int)
 
 
 @st.cache_data(ttl=30)
@@ -302,8 +306,8 @@ def slice_rows(rows: list[list[str]], start: int, end: int) -> list[list[str]]:
 def safe_df_for_display(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
-    df = df.copy()
 
+    df = df.copy()
     cols = list(df.columns)
     seen: dict[str, int] = {}
     new_cols = []
@@ -366,13 +370,11 @@ def render_metric_cards(total_realizadas: int, total_previstas: int, total_vagas
     st.markdown(metrics_html, unsafe_allow_html=True)
 
 
-def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tuple[str, str]], max_items: int | None = None):
+def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tuple[str, str]]):
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
-    if max_items is not None:
-        df = df.head(max_items)
 
     items_html = "<div class='nir-list'>"
     for _, row in df.iterrows():
@@ -401,24 +403,14 @@ def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tu
     st.markdown(items_html, unsafe_allow_html=True)
 
 
-import streamlit.components.v1 as components
-
-def dataframe_html_centralizado(df: pd.DataFrame, height: int = 520):
+def dataframe_html_centralizado(df: pd.DataFrame):
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
+    html = df.to_html(index=False, escape=True, classes=["nir-table"])
+    st.markdown(f"<div class='nir-table-wrap'>{html}</div>", unsafe_allow_html=True)
 
-    table_html = df.to_html(index=False, escape=True, classes="nir-table")
-
-    html = f"""
-    <div class="nir-table-wrap">
-      {table_html}
-    </div>
-    """
-
-    # components.html renderiza HTML grande de forma mais confiável que st.markdown
-    components.html(html, height=height, scrolling=True)
 
 # ======================
 # PARSING DO CSV
@@ -450,10 +442,14 @@ def montar_altas(rows: list[list[str]], i_altas_header: int, i_vagas_title: int)
     rename = {"ALTAS HOSPITAL": "HOSPITAL", "SETOR": "SETOR"}
     df = df.rename(columns={c: rename.get(str(c).strip(), str(c).strip()) for c in df.columns})
 
-    # CORRIGIDO: busca pelo nome correto da coluna
-    col_realizadas = find_col_by_contains(df, "ALTAS REALIZADAS")
+    # coluna exata informada por você
+    col_realizadas = (
+        find_col_by_contains(df, "ALTAS REALIZADAS (ATE 19H)")
+        or find_col_by_contains(df, "ALTAS REALIZADAS (ATÉ 19H)")
+        or find_col_by_contains(df, "ALTAS REALIZADAS")
+    )
     col_previstas = find_col_by_contains(df, "ALTAS PREVISTAS")
-    
+
     if col_realizadas:
         df[col_realizadas] = to_int_series(df[col_realizadas])
     if col_previstas:
@@ -552,4 +548,81 @@ except Exception:
     st.stop()
 
 i_altas_header = achar_linha_por_substring(rows, "ALTAS")
-i_vagas_title = achar_linha_por_substring
+i_vagas_title = achar_linha_por_substring(rows, "VAGAS RESERVADAS")
+i_transf_title = achar_linha_por_substring(rows, "TRANSFERENCIAS")
+
+missing = []
+if i_altas_header is None:
+    missing.append("ALTAS")
+if i_vagas_title is None:
+    missing.append("VAGAS RESERVADAS")
+if i_transf_title is None:
+    missing.append("TRANSFERENCIAS")
+
+if missing:
+    st.error("Não encontrei estes marcadores no CSV: " + ", ".join(missing))
+    st.stop()
+
+df_altas = montar_altas(rows, i_altas_header, i_vagas_title)
+df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
+df_transf = montar_transferencias(rows, i_transf_title)
+
+# ======================
+# MÉTRICAS
+# ======================
+col_realizadas = (
+    find_col_by_contains(df_altas, "ALTAS REALIZADAS (ATE 19H)")
+    or find_col_by_contains(df_altas, "ALTAS REALIZADAS (ATÉ 19H)")
+    or find_col_by_contains(df_altas, "ALTAS REALIZADAS")
+)
+col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS")
+
+total_realizadas = int(df_altas[col_realizadas].sum()) if col_realizadas else 0
+total_previstas = int(df_altas[col_previstas].sum()) if col_previstas else 0
+total_vagas = int(df_vagas["VAGAS_RESERVADAS"].sum()) if not df_vagas.empty else 0
+total_transf = int(df_transf["TOTAL"].sum()) if not df_transf.empty else 0
+
+render_metric_cards(total_realizadas, total_previstas, total_vagas, total_transf)
+
+st.markdown("")
+
+# ======================
+# CONTEÚDO
+# ======================
+if modo_mobile:
+    section_title("ALTAS")
+    render_mobile_list(
+        df_altas,
+        title_cols=["HOSPITAL", "SETOR"],
+        kv_cols=[
+            ("Altas realizadas", col_realizadas or "ALTAS REALIZADAS (ATÉ 19H)"),
+            ("Previstas", col_previstas or "ALTAS PREVISTAS"),
+        ],
+    )
+
+    st.markdown("")
+    section_title("VAGAS RESERVADAS (DIA SEGUINTE)")
+    render_mobile_list(
+        df_vagas,
+        title_cols=["HOSPITAL", "SETOR"],
+        kv_cols=[("Vagas", "VAGAS_RESERVADAS")],
+    )
+
+    st.markdown("")
+    section_title("TRANSFERÊNCIAS/SAÍDAS")
+    render_mobile_list(
+        df_transf,
+        title_cols=["DESCRIÇÃO"],
+        kv_cols=[("Total", "TOTAL")],
+    )
+else:
+    st.subheader("ALTAS")
+    dataframe_html_centralizado(df_altas)
+
+    st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
+    dataframe_html_centralizado(df_vagas)
+
+    st.subheader("TRANSFERÊNCIAS/SAÍDAS")
+    dataframe_html_centralizado(df_transf)
+
+st.caption("Fonte: Google Sheets (Folha1).")
