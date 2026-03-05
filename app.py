@@ -401,14 +401,24 @@ def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tu
     st.markdown(items_html, unsafe_allow_html=True)
 
 
-def dataframe_html_centralizado(df: pd.DataFrame):
+import streamlit.components.v1 as components
+
+def dataframe_html_centralizado(df: pd.DataFrame, height: int = 520):
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
-    html = df.to_html(index=False, escape=True, classes=["nir-table"])
-    st.markdown(f"<div class='nir-table-wrap'>{html}</div>", unsafe_allow_html=True)
 
+    table_html = df.to_html(index=False, escape=True, classes="nir-table")
+
+    html = f"""
+    <div class="nir-table-wrap">
+      {table_html}
+    </div>
+    """
+
+    # components.html renderiza HTML grande de forma mais confiável que st.markdown
+    components.html(html, height=height, scrolling=True)
 
 # ======================
 # PARSING DO CSV
