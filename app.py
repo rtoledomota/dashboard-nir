@@ -440,8 +440,10 @@ def montar_altas(rows: list[list[str]], i_altas_header: int, i_vagas_title: int)
     rename = {"ALTAS HOSPITAL": "HOSPITAL", "SETOR": "SETOR"}
     df = df.rename(columns={c: rename.get(str(c).strip(), str(c).strip()) for c in df.columns})
 
-    col_realizadas = find_col_by_contains(df, "ALTAS DO DIA")
+    # CORRIGIDO: busca pelo nome correto da coluna
+    col_realizadas = find_col_by_contains(df, "ALTAS REALIZADAS")
     col_previstas = find_col_by_contains(df, "ALTAS PREVISTAS")
+    
     if col_realizadas:
         df[col_realizadas] = to_int_series(df[col_realizadas])
     if col_previstas:
@@ -540,79 +542,4 @@ except Exception:
     st.stop()
 
 i_altas_header = achar_linha_por_substring(rows, "ALTAS")
-i_vagas_title = achar_linha_por_substring(rows, "VAGAS RESERVADAS")
-i_transf_title = achar_linha_por_substring(rows, "TRANSFERENCIAS")
-
-missing = []
-if i_altas_header is None:
-    missing.append("ALTAS")
-if i_vagas_title is None:
-    missing.append("VAGAS RESERVADAS")
-if i_transf_title is None:
-    missing.append("TRANSFERENCIAS")
-
-if missing:
-    st.error("Não encontrei estes marcadores no CSV: " + ", ".join(missing))
-    st.stop()
-
-df_altas = montar_altas(rows, i_altas_header, i_vagas_title)
-df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
-df_transf = montar_transferencias(rows, i_transf_title)
-
-# ======================
-# MÉTRICAS (por padrão: 0 se coluna não encontrada)
-# ======================
-col_realizadas = find_col_by_contains(df_altas, "ALTAS DO DIA") if not df_altas.empty else None
-col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS") if not df_altas.empty else None
-
-total_realizadas = int(df_altas[col_realizadas].sum()) if col_realizadas else 0
-total_previstas = int(df_altas[col_previstas].sum()) if col_previstas else 0
-total_vagas = int(df_vagas["VAGAS_RESERVADAS"].sum()) if not df_vagas.empty else 0
-total_transf = int(df_transf["TOTAL"].sum()) if not df_transf.empty else 0
-
-render_metric_cards(total_realizadas, total_previstas, total_vagas, total_transf)
-
-st.markdown("")
-
-# ======================
-# CONTEÚDO
-# ======================
-if modo_mobile:
-    section_title("ALTAS")
-    col_dia = find_col_by_contains(df_altas, "ALTAS DO DIA") or "ALTAS DO DIA"
-    col_prev = find_col_by_contains(df_altas, "ALTAS PREVISTAS") or "ALTAS PREVISTAS"
-    render_mobile_list(
-        df_altas,
-        title_cols=["HOSPITAL", "SETOR"],
-        kv_cols=[("Altas do dia", col_dia), ("Previstas", col_prev)],
-        max_items=None,
-    )
-
-    st.markdown("")
-    section_title("VAGAS RESERVADAS (DIA SEGUINTE)")
-    render_mobile_list(
-        df_vagas,
-        title_cols=["HOSPITAL", "SETOR"],
-        kv_cols=[("Vagas", "VAGAS_RESERVADAS")],
-        max_items=None,
-    )
-
-    st.markdown("")
-    section_title("TRANSFERÊNCIAS/SAÍDAS")
-    render_mobile_list(
-        df_transf,
-        title_cols=["DESCRIÇÃO"],
-        kv_cols=[("Total", "TOTAL")],
-        max_items=None,
-    )
-else:
-    st.subheader("ALTAS")
-    dataframe_html_centralizado(df_altas)
-
-    st.subheader("VAGAS RESERVADAS - MAPA CIRÚRGICO (DIA SEGUINTE)")
-    dataframe_html_centralizado(df_vagas)
-
-    st.subheader("TRANSFERÊNCIAS/SAÍDAS")
-    dataframe_html_centralizado(df_transf)
-
-st.caption("Fonte: Google Sheets (Folha1).")
+i_vagas_title = achar_linha_por_substring
