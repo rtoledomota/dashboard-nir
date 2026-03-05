@@ -44,7 +44,7 @@ def agora_local() -> datetime:
 
 
 # ======================
-# CSS (inclui tabela HTML centralizada)
+# CSS (inclui tabela HTML centralizada para DESKTOP)
 # ======================
 st.markdown(
     f"""
@@ -402,14 +402,10 @@ def render_mobile_list(df: pd.DataFrame, title_cols: list[str], kv_cols: list[tu
 
 
 def dataframe_html_centralizado(df: pd.DataFrame):
-    """
-    Desktop: render HTML com centralização garantida (não depende do st.dataframe).
-    """
     df = safe_df_for_display(df)
     if df.empty:
         st.info("Sem dados para exibir.")
         return
-
     html = df.to_html(index=False, escape=True, classes=["nir-table"])
     st.markdown(f"<div class='nir-table-wrap'>{html}</div>", unsafe_allow_html=True)
 
@@ -536,9 +532,6 @@ st.markdown("")
 
 # ======================
 # LOAD + PARSE
-# DEBUG: Mostra as colunas encontradas
-st.write("Colunas em ALTAS:", list(df_altas.columns))
-st.write("Primeiras linhas:", df_altas.head(3))
 # ======================
 try:
     rows = baixar_csv_como_matriz(CSV_URL)
@@ -567,7 +560,7 @@ df_vagas = montar_vagas(rows, i_vagas_title, i_transf_title)
 df_transf = montar_transferencias(rows, i_transf_title)
 
 # ======================
-# MÉTRICAS
+# MÉTRICAS (por padrão: 0 se coluna não encontrada)
 # ======================
 col_realizadas = find_col_by_contains(df_altas, "ALTAS DO DIA") if not df_altas.empty else None
 col_previstas = find_col_by_contains(df_altas, "ALTAS PREVISTAS") if not df_altas.empty else None
