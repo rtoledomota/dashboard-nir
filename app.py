@@ -536,6 +536,9 @@ st.markdown("")
 
 # ======================
 # LOAD + PARSE
+# DEBUG: Mostra as colunas encontradas
+st.write("Colunas em ALTAS:", list(df_altas.columns))
+st.write("Primeiras linhas:", df_altas.head(3))
 # ======================
 try:
     rows = baixar_csv_como_matriz(CSV_URL)
